@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Apr 30 13:40:00 2021
 
@@ -126,6 +125,66 @@ def infer_steady(init_vec, adjmatrix, n, landa, f_type="sig", infer_rule="mk"):
             )
 
         act_vec_new = _transform(x, n, f_type, landa)
+        resid = max(abs(act_vec_new - act_vec_old))
+        act_vec_old = act_vec_new
+
+    return act_vec_new
+
+
+# TODO: Merge remove duplicated code between infer_scenario and infer_steady fuctions
+def infer_scenario(
+    scenario_concept,
+    init_vec,
+    adjmatrix,
+    n,
+    landa,
+    f_type="sig",
+    infer_rule="mk",
+    change_level=1,
+):
+    """
+    Infer teh scenario
+
+     k = Kasko
+     mk = Modified Kasko
+     r = Rescaled Kasko
+
+    Parameters
+       ----------
+       init_vec : numpy.ndarray
+           Inital activation vector.
+       adjmatrix : numpy.ndarray
+           Adjacency matrix of the fuzzy congintive model.
+       n : int
+           The number of concepts in the adjacency matrix.
+       landa : int
+           The lambda threshold value used in the squashing fuciton between 0 - 10.
+       f_type : str (optional)
+           Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv"
+       infer_rule : str (optional)
+           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" :Default: "mk"
+
+       Returns
+           -------
+           Activation Vector : numpy.ndarray
+    """
+    act_vec_old = init_vec
+    resid = 1
+    while resid > 0.00001:
+        act_vec_new = np.zeros(n)
+        x = np.zeros(n)
+        if infer_rule == "k":
+            x = np.matmul(adjmatrix, act_vec_old)
+        if infer_rule == "mk":
+            x = act_vec_old + np.matmul(adjmatrix, act_vec_old)
+        if infer_rule == "r":
+            x = (2 * act_vec_old - np.ones(n)) + np.matmul(
+                adjmatrix, (2 * act_vec_old - np.ones(n))
+            )
+
+        act_vec_new = _transform(x, n, f_type, landa)
+        # This is the only differenc inbetween infer_steady and  infer_scenario
+        act_vec_new[scenario_concept] = change_level
         resid = max(abs(act_vec_new - act_vec_old))
         act_vec_old = act_vec_new
 
