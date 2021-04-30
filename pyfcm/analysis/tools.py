@@ -102,9 +102,9 @@ def infer_steady(init_vec, adjmatrix, n, landa, f_type="sig", infer_rule="mk"):
        landa : int
            The lambda threshold value used in the squashing fuciton between 0 - 10.
        f_type : str (optional)
-           Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv"
+           Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv" (default is sig)
        infer_rule : str (optional)
-           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" :Default: "mk"
+           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" (default is mk)
 
        Returns
            -------
@@ -162,11 +162,11 @@ def infer_scenario(
        landa : int
            The lambda threshold value used in the squashing fuciton between 0 - 10.
        f_type : str (optional)
-           Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv"
+           Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv" (default is sig)
        infer_rule : str (optional)
-           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" :Default: "mk"
+           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" (default is mk)
        change_level : int (optional)
-            The activation level of the concept between [-1,1]
+            The activation level of the concept between [-1,1] (default is 1)
        Returns
            -------
            Activation Vector : numpy.ndarray

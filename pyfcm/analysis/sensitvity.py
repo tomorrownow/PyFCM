@@ -20,7 +20,7 @@ def sensitivity_analysis(
     lambda_thres=0,
     principles=None,
     list_of_consepts_to_run=None,
-    f_type="tanh",
+    f_type="sig",
     infer_rule="mk",
 ):
     """
@@ -37,21 +37,21 @@ def sensitivity_analysis(
 
             Sometimes you need to remove the links with significantly low weights to avoid messiness.
             Noise_Threshold is a number in [0,1] which defines a boundary below which all links will be removed from the FCM.
-            E.g. Noise_Threshold = 0.15 means that all edges with weight <= 0.15 will be removed from FCM.
+            E.g. Noise_Threshold = 0.15 means that all edges with weight <= 0.15 will be removed from FCM. (default is 0)
        lambda_thres : int (optional)
-           The lambda threshold value used in the squashing fuciton between 0 - 10.
+           The lambda threshold value used in the squashing fuciton between 0 - 10. (default is 0)
        principles : List (optional)
            In each FCM you have some variables which are more important and
            considered to be the main principles of the system. For example, in one FCM my
            main variables are "water pollution" and "CO2 emission". These are the system
            indicators. By defining these principles you would be able to build an additional list
-           for keeping track of changes in only these principles not all of the concepts.
+           for keeping track of changes in only these principles not all of the concepts. (default is None)
         list_of_consepts_to_run : List (optional)
-            The concepts getting activated during the analysis.
+            The concepts getting activated during the analysis (default is None).
        f_type : str (optional)
-           Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv"
+           Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv" (default is sig)
        infer_rule : str (optional)
-           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" :Default: "mk"
+           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" (default is mk)
 
        Returns
            -------
