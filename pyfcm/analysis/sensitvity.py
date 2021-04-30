@@ -134,5 +134,5 @@ def sensitivity_analysis(
             plt.xlabel("activation state of {}".format(sce_con_name))
             plt.ylabel("State of system principles")
 
-            fig.savefig("{}.pdf".format(sce_con_name))
+            fig.savefig("{}.png".format(sce_con_name))
         plt.show()
