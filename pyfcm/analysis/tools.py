@@ -151,6 +151,8 @@ def infer_scenario(
 
     Parameters
        ----------
+       scenorio_concept: int
+            Index of scenorio in the activation vector
        init_vec : numpy.ndarray
            Inital activation vector.
        adjmatrix : numpy.ndarray
@@ -163,7 +165,8 @@ def infer_scenario(
            Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv"
        infer_rule : str (optional)
            Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" :Default: "mk"
-
+       change_level : int (optional)
+            The activation level of the concept between [-1,1]
        Returns
            -------
            Activation Vector : numpy.ndarray
