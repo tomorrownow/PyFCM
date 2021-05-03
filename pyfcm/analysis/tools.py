@@ -151,8 +151,8 @@ def infer_scenario(
 
     Parameters
        ----------
-       scenorio_concept: int
-            Index of scenorio in the activation vector
+       scenorio_concept: int or list
+            Index of scenorio in the activation vector, or list of indexes
        init_vec : numpy.ndarray
            Inital activation vector.
        adjmatrix : numpy.ndarray
@@ -166,7 +166,7 @@ def infer_scenario(
        infer_rule : str (optional)
            Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" (default is mk)
        change_level : int (optional)
-            The activation level of the concept between [-1,1] (default is 1)
+            The activation level of the concept or list of concpects between [-1,1] (default is 1)
        Returns
            -------
            Activation Vector : numpy.ndarray
@@ -187,7 +187,13 @@ def infer_scenario(
 
         act_vec_new = _transform(x, n, f_type, landa)
         # This is the only differenc inbetween infer_steady and  infer_scenario
-        act_vec_new[scenario_concept] = change_level
+        # TODO: Change the data structure being used here to a dictonary
+        if isinstance(scenario_concept, list) and isinstance(change_level, list):
+            for c in scenario_concept:
+                act_vec_new[c] = change_level[c]
+        elif isinstance(scenario_concept, int) and isinstance(change_level, int):
+            act_vec_new[scenario_concept] = change_level
+
         resid = max(abs(act_vec_new - act_vec_old))
         act_vec_old = act_vec_new
 
