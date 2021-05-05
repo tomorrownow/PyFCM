@@ -10,7 +10,7 @@ import math
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-from .tools import infer_steady, infer_scenario
+from pyfcm.analysis import infer_steady, infer_scenario
 
 
 def sensitivity_analysis(
