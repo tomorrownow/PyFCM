@@ -7,121 +7,126 @@ Created on Mon May 03 9:12:22 2021
 """
 
 import matplotlib.pyplot as plt
-import xlrd
+
+# import xlrd
 import numpy as np
 import math
 import networkx as nx
-from .tools import infer_steady, infer_scenario
-
-# file_location = init.file_location
-# workbook = xlrd.open_workbook(file_location)
-# sheet = workbook.sheet_by_index(0)
-
-# n_concepts = sheet.nrows - 1
-
-# Adj_matrix = np.zeros((n_concepts, n_concepts))
-# activation_vec = np.ones(n_concepts)
-# node_name = {}
-# # ______________________________________________________________________________
-
-# Noise_Threshold = init.Noise_Threshold
-
-# for i in range(1, n_concepts + 1):
-#     for j in range(1, n_concepts + 1):
-#         if abs(sheet.cell_value(i, j)) <= Noise_Threshold:
-#             Adj_matrix[i - 1, j - 1] = 0
-#         else:
-#             Adj_matrix[i - 1, j - 1] = sheet.cell_value(i, j)
-
-# # ______________________________________________________________________________
-
-# # Generating a python NetworkX graph using our Adjacancy Matrix
-# # Concepts_matrix is a list to keep concept names
-# Concepts_matrix = []
-# for i in range(1, n_concepts + 1):
-#     Concepts_matrix.append(sheet.cell_value(0, i))
-
-# G = nx.DiGraph(Adj_matrix)
-# for nod in G.nodes():
-#     node_name[nod] = sheet.cell_value(nod + 1, 0)
-# # ______________________________________________________________________________
-
-# Principles = init.Principles
+from pyfcm.analysis.tools import infer_steady, infer_scenario
 
 
-# prin_concepts_index = []
-# for nod in node_name.keys():
-#     if node_name[nod] in Principles:
-#         prin_concepts_index.append(nod)
+def scenario_analysis(
+    data,
+    columns,
+    noise_threshold=0,
+    lambda_thres=0,
+    principles=[],
+    list_of_consepts_to_run=[],
+    function_type="tanh",
+    infer_rule="mk",
+    change_level={},
+    what_to_show="A",
+):
 
+    n_concepts = len(columns)
+    adjmatrix = np.zeros((n_concepts, n_concepts))
 
-# list_of_consepts_to_run = init.list_of_consepts_to_run
+    activation_vec = np.ones(n_concepts)
+    concepts_matrix = []
 
-# # ______________________________________________________________________________
-# function_type = init.function_type
-# infer_rule = init.infer_rule
-# change_level = init.change_level
+    for i in range(0, n_concepts):
+        print(columns.values[i])
+        concepts_matrix.append(columns.values[i])
 
-# change_level_by_index = {}
-# for name in change_level.keys():
-#     change_level_by_index[Concepts_matrix.index(name)] = change_level[name]
+    G = nx.DiGraph(data)
 
-# Scenario_concepts = []
-# for name in list_of_consepts_to_run:
-#     Sce_Con_name = name
-#     Scenario_concepts.append(Concepts_matrix.index(Sce_Con_name))
+    # label nodes with variable names
+    node_name = {}
+    for nod in G.nodes():
+        node_name[nod] = columns[nod]
 
+    # G = nx.relabel_nodes(G, node_name)
 
-# change_IN_PRINCIPLES = []
+    prin_concepts_index = []
+    for nod in node_name.keys():
+        if node_name[nod] in principles:
+            prin_concepts_index.append(nod)
 
+    print("Principle Concepts: {}".format(prin_concepts_index))
+    # ______________________________________________________________________________
 
-# SteadyState = infer_steady(f_type=function_type, infer_rule=infer_rule)
-# ScenarioState = infer_scenario(
-#     Scenario_concepts,
-#     change_level_by_index,
-#     f_type=function_type,
-#     infer_rule=infer_rule,
-# )
-# change_IN_ALL = ScenarioState - SteadyState
+    change_level_by_index = {}
+    print(concepts_matrix)
+    for name in change_level.keys():
+        print("name: {}".format(name))
+        change_level_by_index[concepts_matrix.index(name)] = change_level[name]
+    print(change_level_by_index)
 
-# for c in Scenario_concepts:
-#     change_IN_ALL[c] = 0
+    scenario_concepts = []
+    for name in list_of_consepts_to_run:
+        Sce_Con_name = name
+        scenario_concepts.append(concepts_matrix.index(Sce_Con_name))
+    print("scenario_concepts: {}".format(scenario_concepts))
 
-# for i in range(len(prin_concepts_index)):
-#     change_IN_PRINCIPLES.append(change_IN_ALL[prin_concepts_index[i]])
+    change_IN_principles = []
 
+    steady_state = infer_steady(
+        init_vec=activation_vec,
+        adjmatrix=adjmatrix.T,
+        n=n_concepts,
+        landa=lambda_thres,
+        f_type=function_type,
+        infer_rule=infer_rule,
+    )
+    print("steady_state: {}".format(steady_state))
+    scenario_state = infer_scenario(
+        scenorio_concept=scenario_concepts,
+        change_level=change_level_by_index,
+        f_type=function_type,
+        infer_rule=infer_rule,
+        init_vec=activation_vec,
+        adjmatrix=adjmatrix,
+        n=n_concepts,
+        landa=lambda_thres,
+    )
+    print("scenario_state: {}".format(scenario_state))
+    change_IN_ALL = scenario_state - steady_state
+    # print(change_IN_ALL)
+    for c in scenario_concepts:
+        change_IN_ALL[c] = 0
 
-# What_to_show = input(
-#     "You want to see the results in All (Type: 'A') or only Principles (Type: 'P')?  "
-# )
+    print("Change in All: {}".format(change_IN_ALL))
 
-# if What_to_show == "A":
-#     changes = change_IN_ALL
-#     a = 50
-#     plt.figure(figsize=(a, 5))
-#     plt.bar(np.arange(len(changes)), changes, align="center", alpha=1, color="g")
-#     plt.xticks(np.arange(len(changes)), Concepts_matrix, rotation="vertical")
+    for i in range(len(prin_concepts_index)):
+        change_IN_principles.append(change_IN_ALL[prin_concepts_index[i]])
 
-# else:
-#     changes = change_IN_PRINCIPLES
-#     a = 10
-#     plt.figure(figsize=(a, 3))
-#     plt.bar(np.arange(len(changes)), changes, align="center", alpha=1, color="b")
-#     plt.xticks(np.arange(len(changes)), Principles, rotation="vertical")
+    print("Change in Princples: {}".format(change_IN_principles))
 
+    What_to_show = what_to_show  # input("You want to see the results in All (Type: 'A') or only principles (Type: 'P')?  ")
 
-# # plt.ylim(0,1)
-# # plt.ylabel('changes')
-# plt.title("changes in variables")
-# ax = plt.axes()
-# ax.xaxis.grid()  # vertical lines
-# plt.savefig("Scenario_Results.pdf")
-# plt.show()
+    if What_to_show == "A":
+        changes = change_IN_ALL
+        a = 10
+        plt.figure(figsize=(a, 5))
+        plt.bar(np.arange(len(changes)), changes, align="center", alpha=1, color="g")
+        plt.xticks(np.arange(len(changes)), concepts_matrix, rotation="vertical")
 
+    else:
+        changes = change_IN_principles
+        a = 10
+        plt.figure(figsize=(a, 3))
+        plt.bar(np.arange(len(changes)), changes, align="center", alpha=1, color="b")
+        plt.xticks(np.arange(len(changes)), principles, rotation="vertical")
 
-# changes_dic = {}
-# for nod in G.nodes():
-#     changes_dic[node_name[nod]] = change_IN_ALL[nod]
+    plt.title("changes in variables")
+    ax = plt.axes()
+    ax.xaxis.grid()  # vertical lines
+    plt.savefig("Scenario_Results.pdf")
+    plt.show()
 
-# with open("Changes_In_All_Concepts.csv", "w") as f:
-#     [f.write("{0},{1}\n".format(key, value)) for key, value in changes_dic.items()]
+    changes_dic = {}
+    for nod in G.nodes():
+        changes_dic[node_name[nod]] = change_IN_ALL[nod]
+    print(changes_dic)
+    with open("Changes_In_All_Concepts.csv", "w") as f:
+        [f.write("{0},{1}\n".format(key, value)) for key, value in changes_dic.items()]

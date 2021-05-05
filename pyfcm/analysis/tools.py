@@ -47,8 +47,8 @@ def _infer_rule(n, act_vec_old, adjmatrix, infer_rule):
            The number of concepts in the adjacency matrix.
        act_vec_old : numpy.ndarray
            Olde activation vector.
-       adjmatrix : numpy.ndarray
-           Adjacency matrix of the fuzzy congintive model.
+       adjmatrix: numpy.ndarray
+           Transposed adjacency matrix of the fuzzy congintive model.
        infer_rule : InferenceRule (Enum)
            Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" (default is mk)
 
@@ -60,11 +60,15 @@ def _infer_rule(n, act_vec_old, adjmatrix, infer_rule):
     x = np.zeros(n)
     if infer_rule == InferenceRule.K.value:
         x = np.matmul(adjmatrix, act_vec_old)
-    if infer_rule == InferenceRule.MK.value:
+    elif infer_rule == InferenceRule.MK.value:
         x = act_vec_old + np.matmul(adjmatrix, act_vec_old)
-    if infer_rule == InferenceRule.R.value:
+    elif infer_rule == InferenceRule.R.value:
         x = (2 * act_vec_old - np.ones(n)) + np.matmul(
             adjmatrix, (2 * act_vec_old - np.ones(n))
+        )
+    else:
+        raise ValueError(
+            "An invalide inference rule was provide. Kasko = k, Modified Kasko = mk, Rescaled Kasko = r"
         )
 
     return x
