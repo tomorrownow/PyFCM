@@ -1,10 +1,18 @@
-"""
-Created on Fri Apr 30 13:40:00 2021
+# Methods used while analyzing fuzzy cognitive models
+# Copyright (C) 2018-2021 Corey White and others (see below)
 
-@author: Corey White
-         North Carolina State University
-         ctwhite@ncsu.edu
-"""
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, see https://www.gnu.org/licenses/gpl-2.0.html
 
 from enum import Enum
 import numpy as np
@@ -25,6 +33,41 @@ class InferenceRule(Enum):
 
 
 # 'SIG' in SquashingFucntion.__members__
+def _infer_rule(n, act_vec_old, adjmatrix, infer_rule):
+    """
+    Infer Rules
+
+    k = Kasko
+    mk = Modified Kasko
+    r = Rescaled Kasko
+
+    Parameters
+       ----------
+       n : int
+           The number of concepts in the adjacency matrix.
+       act_vec_old : numpy.ndarray
+           Olde activation vector.
+       adjmatrix : numpy.ndarray
+           Adjacency matrix of the fuzzy congintive model.
+       infer_rule : InferenceRule (Enum)
+           Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" (default is mk)
+
+       Returns
+           -------
+           Activation Vector : numpy.ndarray
+    """
+
+    x = np.zeros(n)
+    if infer_rule == InferenceRule.K.value:
+        x = np.matmul(adjmatrix, act_vec_old)
+    if infer_rule == InferenceRule.MK.value:
+        x = act_vec_old + np.matmul(adjmatrix, act_vec_old)
+    if infer_rule == InferenceRule.R.value:
+        x = (2 * act_vec_old - np.ones(n)) + np.matmul(
+            adjmatrix, (2 * act_vec_old - np.ones(n))
+        )
+
+    return x
 
 
 def _transform(x, n, f_type, landa):
@@ -46,19 +89,19 @@ def _transform(x, n, f_type, landa):
           -------
           Activation Vector : numpy.ndarray
     """
-    if f_type == "sig":
+    if f_type == SquashingFucntion.SIG.value:
         x_new = np.zeros(n)
         for i in range(n):
             x_new[i] = 1 / (1 + math.exp(-landa * x[i]))
         return x_new
 
-    if f_type == "tanh":
+    elif f_type == SquashingFucntion.TANH.value:
         x_new = np.zeros(n)
         for i in range(n):
             x_new[i] = math.tanh(landa * x[i])
         return x_new
 
-    if f_type == "biv":
+    elif f_type == SquashingFucntion.BIV.value:
         x_new = np.zeros(n)
         for i in range(n):
             if x[i] > 0:
@@ -67,7 +110,7 @@ def _transform(x, n, f_type, landa):
                 x_new[i] = 0
         return x_new
 
-    if f_type == "triv":
+    elif f_type == SquashingFucntion.TRIV.value:
         x_new = np.zeros(n)
         for i in range(n):
             if x[i] > 0:
@@ -77,6 +120,10 @@ def _transform(x, n, f_type, landa):
             else:
                 x_new[i] = -1
         return x_new
+    else:
+        raise ValueError(
+            "An invalide squashing function was provide. Please select Sigmoid = 'sig', Hyperbolic Tangent = 'tanh', Bivalent = 'biv', Trivalent = 'triv'"
+        )
 
 
 def infer_steady(init_vec, adjmatrix, n, landa, f_type="sig", infer_rule="mk"):
@@ -114,15 +161,7 @@ def infer_steady(init_vec, adjmatrix, n, landa, f_type="sig", infer_rule="mk"):
     resid = 1
     while resid > 0.00001:
         act_vec_new = np.zeros(n)
-        x = np.zeros(n)
-        if infer_rule == "k":
-            x = np.matmul(adjmatrix, act_vec_old)
-        if infer_rule == "mk":
-            x = act_vec_old + np.matmul(adjmatrix, act_vec_old)
-        if infer_rule == "r":
-            x = (2 * act_vec_old - np.ones(n)) + np.matmul(
-                adjmatrix, (2 * act_vec_old - np.ones(n))
-            )
+        x = _infer_rule(n, act_vec_old, adjmatrix, infer_rule)
 
         act_vec_new = _transform(x, n, f_type, landa)
         resid = max(abs(act_vec_new - act_vec_old))
@@ -143,7 +182,7 @@ def infer_scenario(
     change_level=1,
 ):
     """
-    Infer teh scenario
+    Infer the scenario
 
      k = Kasko
      mk = Modified Kasko
@@ -175,15 +214,7 @@ def infer_scenario(
     resid = 1
     while resid > 0.00001:
         act_vec_new = np.zeros(n)
-        x = np.zeros(n)
-        if infer_rule == "k":
-            x = np.matmul(adjmatrix, act_vec_old)
-        if infer_rule == "mk":
-            x = act_vec_old + np.matmul(adjmatrix, act_vec_old)
-        if infer_rule == "r":
-            x = (2 * act_vec_old - np.ones(n)) + np.matmul(
-                adjmatrix, (2 * act_vec_old - np.ones(n))
-            )
+        x = _infer_rule(n, act_vec_old, adjmatrix, infer_rule)
 
         act_vec_new = _transform(x, n, f_type, landa)
         # This is the only differenc inbetween infer_steady and  infer_scenario
@@ -192,6 +223,8 @@ def infer_scenario(
             for c in scenario_concept:
                 act_vec_new[c] = change_level[c]
         elif isinstance(scenario_concept, int) and isinstance(change_level, int):
+            act_vec_new[scenario_concept] = change_level
+        else:
             act_vec_new[scenario_concept] = change_level
 
         resid = max(abs(act_vec_new - act_vec_old))
