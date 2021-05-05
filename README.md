@@ -1,6 +1,6 @@
 # PyFCM
 
-[![Python package](https://github.com/tomorrownow/PyFCM/actions/workflows/template.yaml/badge.svg)](https://github.com/tomorrownow/PyFCM/actions/workflows/template.yaml)
+[![Tests](https://github.com/tomorrownow/PyFCM/actions/workflows/template.yaml/badge.svg)](https://github.com/tomorrownow/PyFCM/actions/workflows/template.yaml)
 
 This is a refactoring and expansion of the original PyFCM [https://github.com/payamaminpour/PyFCM/](https://github.com/payamaminpour/PyFCM) developed in order to fuctionally run FCM analysis.
 
