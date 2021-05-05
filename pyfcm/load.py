@@ -1,12 +1,14 @@
 # import os
-# import pandas as pd
+import pandas as pd
+
 # import seaborn as sns
 
-
 # class FuzzyCognitiveModel:
-#     def __init__(self, name, fcm_data, filetype="csv"):
+#     def __init__(self, name, fcm_data, concept_map=None):
 #         self.name = name
-
+#         self.group = group
+#         self.data = fcm_data
+#         self.concept_map = concept_map
 
 # class SocialCognitiveModel:
 #     def __init__(self, name, fcm_list):
@@ -69,3 +71,47 @@
 #             df_graph_stats_data.append(graph_stats)
 
 # df_graph_stats = pd.DataFrame(df_graph_stats_data)
+
+
+def load_csv(file_path, concept_map=None):
+    """
+    Loads a  csv file as a fuzzy cognitive map.
+
+    Parameters
+       ----------
+       file_path : str
+           The file path to the csv location.
+       concept_map : dict
+           A mapping from user defined variables to a standardized set of variables.
+
+       Returns
+           -------
+           FCM : DataFrame
+    """
+    df = pd.read_csv(file_path, index_col=0).fillna(0)
+    if concept_map:
+        df.columns = df.columns.map(concept_map)
+        df.index = df.index.map(concept_map)
+    return df
+
+
+def load_xlsx(file_path, concept_map=None):
+    """
+    Loads a xlsx file as a fuzzy cognitive map.
+
+    Parameters
+       ----------
+       file_path : str
+           The file path to the csv location.
+       concept_map : dict
+           A mapping from user defined variables to a standardized set of variables.
+
+       Returns
+           -------
+           FCM : DataFrame
+    """
+    df = pd.read_excel(file_path, index_col=0).fillna(0)
+    if concept_map:
+        df.columns = df.columns.map(concept_map)
+        df.index = df.index.map(concept_map)
+    return df
