@@ -235,3 +235,30 @@ def infer_scenario(
         act_vec_old = act_vec_new
 
     return act_vec_new
+
+
+def reduce_noise(adjmatrix, n_concepts, noise_thresold):
+    """
+    Sometimes you need to remove the links with significantly low weights to avoid messiness.
+    noise threshold is a number in [0,1] which defines a boundary below which all links will be removed from the FCM.
+    E.g. noise_thresold = 0.15 means that all edges with weight <= 0.15 will be removed from FCM.
+
+    Parameters
+       ----------
+       adjmatrix : numpy.ndarray
+           Adjacency matrix of the fuzzy congintive model.
+       n_concepts : int
+           The number of concepts in the adjacency matrix.
+       noise_thresold  : int
+            Noise threshold is a number in [0,1] which defines a boundary below which all links will be removed from the FCM.
+       Returns
+           -------
+           Adjacency Matrix : numpy.ndarray
+                An adjacency matrix is returned with values less than or equal to the noise threshold set to zero.
+    """
+    for i in range(1, n_concepts + 1):
+        for j in range(1, n_concepts + 1):
+            if abs(adjmatrix[i - 1, j - 1]) <= noise_thresold:
+                adjmatrix[i - 1, j - 1] = 0
+
+    return adjmatrix
