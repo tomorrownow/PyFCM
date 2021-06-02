@@ -10,7 +10,7 @@ import math
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-from pyfcm.analysis import infer_steady, infer_scenario
+from pyfcm.analysis import infer_steady, infer_scenario, reduce_noise
 
 
 def sensitivity_analysis(
@@ -60,7 +60,7 @@ def sensitivity_analysis(
 
     # ax = ax or plt.gca()
     n_concepts = len(columns)
-    adj_matrix = np.zeros((n_concepts, n_concepts))
+    adj_matrix = reduce_noise(data, n_concepts, noise_threshold)
 
     activation_vec = np.ones(n_concepts)
     concepts_matrix = []

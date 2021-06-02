@@ -12,30 +12,60 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import networkx as nx
-from pyfcm.analysis.tools import infer_steady, infer_scenario
+from pyfcm.analysis.tools import infer_steady, infer_scenario, reduce_noise
 
 
 def scenario_analysis(
     data,
     columns,
+    scenarios,
     noise_threshold=0,
     lambda_thres=0,
-    principles=[],
-    list_of_consepts_to_run=[],
-    function_type="tanh",
+    principles=None,
+    f_type="tanh",
     infer_rule="mk",
-    change_level={},
-    what_to_show="A",
 ):
+    """
+    Run FMC scenario by asking 'what if' questions
+
+    Parameters
+    ----------
+    data: numpy.ndarray
+            Adjacency matrix of the fuzzy congintive model.
+    columns: pandas.core.indexes.base.Index
+            List of columns that matches the order of the adjacency matrix.
+    noise_threshold: float
+            Sometimes you need to remove the links with significantly low weights to avoid messiness.
+            Noise_Threshold is a number in [0,1] which defines a boundary below which all links will be removed from the FCM.
+            E.g. Noise_Threshold = 0.15 means that all edges with weight <= 0.15 will be removed from FCM. (default is 0)
+    lambda_thres : int (optional)
+        The lambda threshold value used in the squashing fuciton between 0 - 10. (default is 0)
+    principles : List
+        In each FCM you have some variables which are more important and
+        considered to be the main principles of the system. For example, in one FCM my
+        main variables are "water pollution" and "CO2 emission". These are the system
+        indicators. By defining these principles you would be able to build an additional list
+        for keeping track of changes in only these principles not all of the concepts. (default is None)
+    scenarios: Dict
+        Dictionary of which variables you want to activate during the scenario using the concept as the key and activation level as the value.
+        {Variable: Activation Level [-1,1]} for example {'c1': 1} or {'c1': -1}
+    f_type : str (optional)
+        Sigmoid = "sig", Hyperbolic Tangent = "tanh", Bivalent = "biv", Trivalent = "triv" (default is sig)
+    infer_rule : str (optional)
+        Kasko = "k", Modified Kasko = "mk", Rescaled Kasko = "r" (default is mk)
+
+    Returns
+        -------
+        Activation Vector : numpy.ndarray
+    """
 
     n_concepts = len(columns)
-    adjmatrix = np.zeros((n_concepts, n_concepts))
 
+    adjmatrix = reduce_noise(data, n_concepts, noise_threshold)
     activation_vec = np.ones(n_concepts)
     concepts_matrix = []
 
     for i in range(0, n_concepts):
-        print(columns.values[i])
         concepts_matrix.append(columns.values[i])
 
     G = nx.DiGraph(data)
@@ -45,88 +75,50 @@ def scenario_analysis(
     for nod in G.nodes():
         node_name[nod] = columns[nod]
 
-    # G = nx.relabel_nodes(G, node_name)
-
     prin_concepts_index = []
     for nod in node_name.keys():
         if node_name[nod] in principles:
             prin_concepts_index.append(nod)
 
-    print("Principle Concepts: {}".format(prin_concepts_index))
-    # ______________________________________________________________________________
-
-    change_level_by_index = {}
-    print(concepts_matrix)
-    for name in change_level.keys():
-        print("name: {}".format(name))
-        change_level_by_index[concepts_matrix.index(name)] = change_level[name]
-    print(change_level_by_index)
-
-    scenario_concepts = []
-    for name in list_of_consepts_to_run:
-        Sce_Con_name = name
-        scenario_concepts.append(concepts_matrix.index(Sce_Con_name))
-    print("scenario_concepts: {}".format(scenario_concepts))
-
-    change_IN_principles = []
+    # Generate a list of indexes for varibales being ran in the scenario that match their location in the adjacency matrix
+    change_level_by_index = {
+        concepts_matrix.index(concept): value for concept, value in scenarios.items()
+    }
+    scenario_concepts = list(change_level_by_index.keys())
 
     steady_state = infer_steady(
         init_vec=activation_vec,
         adjmatrix=adjmatrix.T,
         n=n_concepts,
         landa=lambda_thres,
-        f_type=function_type,
+        f_type=f_type,
         infer_rule=infer_rule,
     )
-    print("steady_state: {}".format(steady_state))
+
     scenario_state = infer_scenario(
-        scenorio_concept=scenario_concepts,
+        scenario_concept=scenario_concepts,
         change_level=change_level_by_index,
-        f_type=function_type,
+        f_type=f_type,
         infer_rule=infer_rule,
         init_vec=activation_vec,
-        adjmatrix=adjmatrix,
+        adjmatrix=adjmatrix.T,
         n=n_concepts,
         landa=lambda_thres,
     )
-    print("scenario_state: {}".format(scenario_state))
-    change_IN_ALL = scenario_state - steady_state
-    # print(change_IN_ALL)
-    for c in scenario_concepts:
-        change_IN_ALL[c] = 0
 
-    print("Change in All: {}".format(change_IN_ALL))
+    # Records changes to the priciple concepts
+    change_in_principles = []
+
+    change_in_all = scenario_state - steady_state
+
+    for c in scenario_concepts:
+        change_in_all[c] = 0
 
     for i in range(len(prin_concepts_index)):
-        change_IN_principles.append(change_IN_ALL[prin_concepts_index[i]])
-
-    print("Change in Princples: {}".format(change_IN_principles))
-
-    What_to_show = what_to_show  # input("You want to see the results in All (Type: 'A') or only principles (Type: 'P')?  ")
-
-    if What_to_show == "A":
-        changes = change_IN_ALL
-        a = 10
-        plt.figure(figsize=(a, 5))
-        plt.bar(np.arange(len(changes)), changes, align="center", alpha=1, color="g")
-        plt.xticks(np.arange(len(changes)), concepts_matrix, rotation="vertical")
-
-    else:
-        changes = change_IN_principles
-        a = 10
-        plt.figure(figsize=(a, 3))
-        plt.bar(np.arange(len(changes)), changes, align="center", alpha=1, color="b")
-        plt.xticks(np.arange(len(changes)), principles, rotation="vertical")
-
-    plt.title("changes in variables")
-    ax = plt.axes()
-    ax.xaxis.grid()  # vertical lines
-    plt.savefig("Scenario_Results.pdf")
-    plt.show()
+        change_in_principles.append(change_in_all[prin_concepts_index[i]])
 
     changes_dic = {}
     for nod in G.nodes():
-        changes_dic[node_name[nod]] = change_IN_ALL[nod]
-    print(changes_dic)
-    with open("Changes_In_All_Concepts.csv", "w") as f:
-        [f.write("{0},{1}\n".format(key, value)) for key, value in changes_dic.items()]
+        changes_dic[node_name[nod]] = change_in_all[nod]
+
+    return changes_dic

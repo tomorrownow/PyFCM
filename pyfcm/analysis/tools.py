@@ -194,7 +194,7 @@ def infer_scenario(
 
     Parameters
        ----------
-       scenorio_concept: int or list
+       scenario_concept: int or list
             Index of scenorio in the activation vector, or list of indexes
        init_vec : numpy.ndarray
            Inital activation vector.
@@ -223,12 +223,21 @@ def infer_scenario(
         act_vec_new = _transform(x, n, f_type, landa)
         # This is the only differenc inbetween infer_steady and  infer_scenario
         # TODO: Change the data structure being used here to a dictonary
-        if isinstance(scenario_concept, list) and isinstance(change_level, list):
+        if isinstance(scenario_concept, list) and isinstance(change_level, dict):
             for c in scenario_concept:
-                act_vec_new[c] = change_level[c]
+                if c in change_level.keys():
+                    act_vec_new[c] = change_level[c]
+
         elif isinstance(scenario_concept, int) and isinstance(change_level, int):
             act_vec_new[scenario_concept] = change_level
         else:
+            print("scenario_concept: {}".format(scenario_concept))
+            print(
+                "act_vec_new[scenario_concept]: {}".format(
+                    act_vec_new[scenario_concept]
+                )
+            )
+            print("c: {}".format(change_level))
             act_vec_new[scenario_concept] = change_level
 
         resid = max(abs(act_vec_new - act_vec_old))
