@@ -74,13 +74,13 @@ def _infer_rule(n, act_vec_old, adjmatrix, infer_rule):
     return x
 
 
-def _transform(x, n, f_type, landa):
+def _transform(act_vect, n, f_type, landa):
     """
     Squashing function applied to FCM
 
     Parameters
       ----------
-      x : numpy.ndarray
+      act_vect : numpy.ndarray
           Activation vector after inference rule is applied.
       n : int
           The number of concepts in the adjacency matrix.
@@ -93,33 +93,30 @@ def _transform(x, n, f_type, landa):
           -------
           Activation Vector : numpy.ndarray
     """
+    x_new = np.zeros(n)
     if f_type == SquashingFucntion.SIG.value:
-        x_new = np.zeros(n)
         for i in range(n):
-            x_new[i] = 1 / (1 + math.exp(-landa * x[i]))
+            x_new[i] = 1 / (1 + math.exp(-landa * act_vect[i]))
         return x_new
 
     elif f_type == SquashingFucntion.TANH.value:
-        x_new = np.zeros(n)
         for i in range(n):
-            x_new[i] = math.tanh(landa * x[i])
+            x_new[i] = math.tanh(landa * act_vect[i])
         return x_new
 
     elif f_type == SquashingFucntion.BIV.value:
-        x_new = np.zeros(n)
         for i in range(n):
-            if x[i] > 0:
+            if act_vect[i] > 0:
                 x_new[i] = 1
             else:
                 x_new[i] = 0
         return x_new
 
     elif f_type == SquashingFucntion.TRIV.value:
-        x_new = np.zeros(n)
         for i in range(n):
-            if x[i] > 0:
+            if act_vect[i] > 0:
                 x_new[i] = 1
-            elif x[i] == 0:
+            elif act_vect[i] == 0:
                 x_new[i] = 0
             else:
                 x_new[i] = -1
@@ -223,10 +220,9 @@ def infer_scenario(
         act_vec_new = _transform(x, n, f_type, landa)
         # This is the only differenc inbetween infer_steady and  infer_scenario
         # TODO: Change the data structure being used here to a dictonary
-        if isinstance(scenario_concept, list) and isinstance(change_level, dict):
-            for c in scenario_concept:
-                if c in change_level.keys():
-                    act_vec_new[c] = change_level[c]
+        if isinstance(change_level, dict):
+            for i, v in change_level.items():
+                act_vec_new[i] = v
 
         elif isinstance(scenario_concept, int) and isinstance(change_level, int):
             act_vec_new[scenario_concept] = change_level
@@ -241,6 +237,7 @@ def infer_scenario(
             act_vec_new[scenario_concept] = change_level
 
         resid = max(abs(act_vec_new - act_vec_old))
+
         act_vec_old = act_vec_new
 
     return act_vec_new

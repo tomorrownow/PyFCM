@@ -11,7 +11,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="PyFCM",
+    name="FCM",
     version="1.0.0",
     author="Corey White",
     author_email="ctwhite@ncsu.edu",
