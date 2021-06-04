@@ -1,5 +1,5 @@
-import pyfcm
-from pyfcm.load import load_csv, load_xlsx
+import fcm
+from fcm.load import load_csv, load_xlsx
 from pandas.core.frame import DataFrame
 
 import pytest

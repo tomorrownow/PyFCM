@@ -1,5 +1,5 @@
-from pyfcm.load import load_csv
-from pyfcm.analysis import scenario
+from fcm.load import load_csv
+from fcm.analysis import scenario
 
 
 def test_scenario_tanh_k_one_variable(shared_datadir):

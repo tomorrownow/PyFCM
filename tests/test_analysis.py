@@ -1,5 +1,5 @@
-import pyfcm
-from pyfcm.analysis.tools import (
+import fcm
+from fcm.analysis.tools import (
     _infer_rule,
     InferenceRule,
     reduce_noise,

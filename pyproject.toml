@@ -16,8 +16,8 @@
       # The following are specific to Black, you probably don't want those.
       | blib2to3
       | tests/data
-      | pyfcm/Aggregation_FCM
-      | pyfcm/Clustering_FCM
-      | pyfcm/Sensitivity_Analysis
-      | pyfcm/Uncertainty_Analysis
+      | fcm/Aggregation_FCM
+      | fcm/Clustering_FCM
+      | fcm/Sensitivity_Analysis
+      | fcm/Uncertainty_Analysis
     )/
